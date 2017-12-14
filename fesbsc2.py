@@ -1,3 +1,8 @@
+from configparser import ConfigParser
+from collections import OrderedDict
+from hashlib import sha256
+import aes
+from base64 import b64encode, b64decode
 import time
 import os.path
 import openpyxl
@@ -40,6 +45,13 @@ driver = webdriver.Remote(service.service_url, capabilities)
 
 keywords = []
 
+password = b'insecure password'
+
+paydetails = OrderedDict([('Name', ''), ('Email', ''), ('Phone', ''), ('Addr1', ''), ('Addr2', ''), ('Addr3', ''),
+                          ('City', ''), ('Post/zip code', ''), ('Country', ''), ('Cardno', ''), ('CardCVV', ''),
+                          ('CardMonth', ''), ('CardYear', ''), ('CardType', '')])
+
+
 def selectKeywords():
     keywordsInput = input("Select keywords, use a comma to separate tags and don't use any spaces e.g. Reflective,Sleeve,Logo,Puffer \n")
     split = keywordsInput.strip().split(",")
@@ -64,7 +76,6 @@ def check_exists_by_xpath(xpath, driver):
     except NoSuchElementException:
         myElem = WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.XPATH, xpath)))
         return driver.find_element_by_xpath(xpath)
-    return True
 
 def returnTime(hour):
     dropTime = int(hour)
@@ -81,114 +92,184 @@ def returnTime(hour):
             break
 isPayPal = 0
 def readDetails():
-    ready = input("Page loaded! Submit by pressing the button and type 'done' when instructed!")
-    if ready == "done": 
-        name = driver.find_elements_by_xpath("""//*[@id="name"]""")
-        sname = name[0].text
-        if len(name) > 1:
-            sname = (name[len(name) - 1].text)
-            
-        email = driver.find_elements_by_xpath("""//*[@id="order_email"]""")
-        semail = email[0].text
-        if len(email) > 1:
-            semail = (email[len(email) - 1].text)
+    global password
+    print("Page loaded! Do you want to safe your credentials encrypted for later use? (yes/no) ")
+    ready = input()
+    if ready.upper() == "YES" or ready.upper() == "Y":
+        safeConf = True
+    else:
+        safeConf = False
 
-        tel = driver.find_elements_by_xpath("""//*[@id="order_tel"]""")
-        stel = tel[0].text
-        if len(tel) > 1:
-            stel = (tel[len(tel) - 1].text)
+    name = driver.find_elements_by_xpath("""//*[@id="name"]""")
+    sname = name[0].text
+    if len(name) > 1:
+        sname = (name[len(name) - 1].text)
 
-        add1 = driver.find_elements_by_xpath("""//*[@id="bo"]""")
-        sadd1 = add1[0].text
-        if len(add1) > 1:
-            sadd1 = (add1[len(add1) - 1].text)
+    email = driver.find_elements_by_xpath("""//*[@id="order_email"]""")
+    semail = email[0].text
+    if len(email) > 1:
+        semail = (email[len(email) - 1].text)
 
-        sadd2 = ""
-        if check_exists_by_xpath_no_wait("""//*[@id="oba3"]""") == True:
-            add2 = driver.find_elements_by_xpath("""//*[@id="oba3"]""")
-            sadd2 = add2[0].text
-            if len(add2) > 1:
-                sadd2 = (add2[len(add2) - 1].text)
+    tel = driver.find_elements_by_xpath("""//*[@id="order_tel"]""")
+    stel = tel[0].text
+    if len(tel) > 1:
+        stel = (tel[len(tel) - 1].text)
 
+    add1 = driver.find_elements_by_xpath("""//*[@id="bo"]""")
+    sadd1 = add1[0].text
+    if len(add1) > 1:
+        sadd1 = (add1[len(add1) - 1].text)
 
-        sadd3 = ""
-        if check_exists_by_xpath_no_wait("""//*[@id="order_billing_address_3"]""") == True:
-            add3 = driver.find_elements_by_xpath("""//*[@id="order_billing_address_3"]""")
-            sadd3 = add3[0].text
-            if len(add3) > 1:
-                sadd3 = (add3[len(add3) - 1].text)
+    sadd2 = ""
+    if check_exists_by_xpath_no_wait("""//*[@id="oba3"]""") == True:
+        add2 = driver.find_elements_by_xpath("""//*[@id="oba3"]""")
+        sadd2 = add2[0].text
+        if len(add2) > 1:
+            sadd2 = (add2[len(add2) - 1].text)
 
-        city = driver.find_elements_by_xpath("""//*[@id="order_billing_city"]""")
-        scity = city[0].text
-        if len(city) > 1:
-            scity = (city[len(city) - 1].text)
+    sadd3 = ""
+    if check_exists_by_xpath_no_wait("""//*[@id="order_billing_address_3"]""") == True:
+        add3 = driver.find_elements_by_xpath("""//*[@id="order_billing_address_3"]""")
+        sadd3 = add3[0].text
+        if len(add3) > 1:
+            sadd3 = (add3[len(add3) - 1].text)
 
-        postcode = driver.find_elements_by_xpath("""//*[@id="order_billing_zip"]""")
-        spostcode = postcode[0].text        
-        if len(postcode) > 1:
-            spostcode = (postcode[len(postcode) - 1].text)
+    city = driver.find_elements_by_xpath("""//*[@id="order_billing_city"]""")
+    scity = city[0].text
+    if len(city) > 1:
+        scity = (city[len(city) - 1].text)
 
-        country = driver.find_elements_by_xpath("""//*[@id="order_billing_country"]""")
-        scountry = country[0].text        
-        if len(country) > 1:
-            scountry = (country[len(country) - 1].text)
+    postcode = driver.find_elements_by_xpath("""//*[@id="order_billing_zip"]""")
+    spostcode = postcode[0].text
+    if len(postcode) > 1:
+        spostcode = (postcode[len(postcode) - 1].text)
 
-        card = driver.find_elements_by_xpath("""//*[@id="credit_card_type"]""")
-        scard = card[0].text        
-        if len(card) > 1:
-            scard = (card[len(card) - 1].text)
-        if scard == "American":
-            scard = "American Express"
-        if scard == "PayPal":
-            isPayPal = 1
+    country = driver.find_elements_by_xpath("""//*[@id="order_billing_country"]""")
+    scountry = country[0].text
+    if len(country) > 1:
+        scountry = (country[len(country) - 1].text)
 
-        cardno = driver.find_elements_by_xpath("""//*[@id="cnb"]""")
-        scardno = cardno[0].text        
-        if len(cardno) > 1:
-            scardno = (cardno[len(cardno) - 1].text)
+    card = driver.find_elements_by_xpath("""//*[@id="credit_card_type"]""")
+    scard = card[0].text
+    if len(card) > 1:
+        scard = (card[len(card) - 1].text)
+    if scard == "American":
+        scard = "American Express"
+    if scard == "PayPal":
+        isPayPal = 1
 
-        month = driver.find_elements_by_xpath("""//*[@id="credit_card_month"]""")
-        smonth = month[0].text        
-        if len(month) > 1:
-            smonth = (month[len(month) - 1].text)
+    cardno = driver.find_elements_by_xpath("""//*[@id="cnb"]""")
+    scardno = cardno[0].text
+    if len(cardno) > 1:
+        scardno = (cardno[len(cardno) - 1].text)
 
-        year = driver.find_elements_by_xpath("""//*[@id="credit_card_year"]""")
-        syear = year[0].text        
-        if len(year) > 1:
-            syear = (year[len(year) - 1].text)
+    month = driver.find_elements_by_xpath("""//*[@id="credit_card_month"]""")
+    smonth = month[0].text
+    if len(month) > 1:
+        smonth = (month[len(month) - 1].text)
 
-        drop = driver.find_elements_by_xpath("""//*[@id="drop_time"]""")
-        sdrop = drop[0].text        
-        if len(drop) > 1:
-            sdrop = (drop[len(drop) - 1].text)
+    year = driver.find_elements_by_xpath("""//*[@id="credit_card_year"]""")
+    syear = year[0].text
+    if len(year) > 1:
+        syear = (year[len(year) - 1].text)
 
-        catType = driver.find_elements_by_xpath("""//*[@id="category_type"]""")
-        scatType = catType[0].text        
-        if len(catType) > 1:
-            scatType = (catType[len(catType) - 1].text)
+    drop = driver.find_elements_by_xpath("""//*[@id="drop_time"]""")
+    sdrop = drop[0].text
+    if len(drop) > 1:
+        sdrop = (drop[len(drop) - 1].text)
 
-        colour = driver.find_elements_by_xpath("""//*[@id="colour"]""")
-        scolour = colour[0].text        
-        if len(colour) > 1:
-            scolour = (colour[len(colour) - 1].text)
+    catType = driver.find_elements_by_xpath("""//*[@id="category_type"]""")
+    scatType = catType[0].text
+    if len(catType) > 1:
+        scatType = (catType[len(catType) - 1].text)
 
-        keywords = driver.find_elements_by_xpath("""//*[@id="order_keywords"]""")
-        skeywords = keywords[0].text        
-        if len(keywords) > 1:
-            skeywords = (keywords[len(keywords) - 1].text)
+    colour = driver.find_elements_by_xpath("""//*[@id="colour"]""")
+    scolour = colour[0].text
+    if len(colour) > 1:
+        scolour = (colour[len(colour) - 1].text)
 
-        size = driver.find_elements_by_xpath("""//*[@id="size"]""")
-        ssize = size[0].text        
-        if len(size) > 1:
-            ssize = (size[len(size) - 1].text)
+    keywords = driver.find_elements_by_xpath("""//*[@id="order_keywords"]""")
+    skeywords = keywords[0].text
+    print(skeywords)
+    if len(keywords) > 1:
+        skeywords = (keywords[len(keywords) - 1].text)
 
-        cvv = driver.find_elements_by_xpath("""//*[@id="vval"]""")
-        scvv = cvv[0].text        
-        if len(cvv) > 1:
-            scvv = (cvv[len(cvv) - 1].text)
+    size = driver.find_elements_by_xpath("""//*[@id="size"]""")
+    ssize = size[0].text
+    if len(size) > 1:
+       ssize = (size[len(size) - 1].text)
+
+    cvv = driver.find_elements_by_xpath("""//*[@id="vval"]""")
+    scvv = cvv[0].text
+    if len(cvv) > 1:
+        scvv = (cvv[len(cvv) - 1].text)
+
+    if safeConf:
+        inp = input("\nEnter a password to continue")
+        password = inp.encode('ascii')
+        writeToConf('Name', sname)
+        writeToConf('Email', semail)
+        writeToConf('Phone', stel)
+        writeToConf('Addr1', sadd1)
+        writeToConf('Addr2', sadd2)
+        writeToConf('Addr3', sadd3)
+        writeToConf('City', scity)
+        writeToConf('Post/zip Code', spostcode)
+        writeToConf('Country', scountry)
+        writeToConf('Cardno', scardno)
+        writeToConf('CardCVV', scvv)
+        writeToConf('CardMonth', smonth)
+        writeToConf('CardYear', syear)
+        writeToConf('CardType', scard)
 
         purchaseItem(sname, semail, stel, sadd1, sadd2, sadd3, scity, spostcode, scountry, scard, scardno, smonth, syear, sdrop, scatType, scolour, skeywords, ssize, scvv)
-    
+
+def readProduct():
+    global password
+    input("Page loaded! Press enter to continue")
+
+    drop = driver.find_elements_by_xpath("""//*[@id="drop_time"]""")
+    sdrop = drop[0].text
+    if len(drop) > 1:
+        sdrop = (drop[len(drop) - 1].text)
+
+    catType = driver.find_elements_by_xpath("""//*[@id="category_type"]""")
+    scatType = catType[0].text
+    if len(catType) > 1:
+        scatType = (catType[len(catType) - 1].text)
+
+    colour = driver.find_elements_by_xpath("""//*[@id="colour"]""")
+    scolour = colour[0].text
+    if len(colour) > 1:
+        scolour = (colour[len(colour) - 1].text)
+
+    keywords = driver.find_elements_by_xpath("""//*[@id="order_keywords"]""")
+    skeywords = keywords[0].text
+    if len(keywords) > 1:
+        skeywords = (keywords[len(keywords) - 1].text)
+
+    size = driver.find_elements_by_xpath("""//*[@id="size"]""")
+    ssize = size[0].text
+    if len(size) > 1:
+       ssize = (size[len(size) - 1].text)
+
+    sname = readConf('Name')
+    semail = readConf('Email')
+    stel = readConf('Phone')
+    sadd1 = readConf('Addr1')
+    sadd2 = readConf('Addr2')
+    sadd3 = readConf('Addr3')
+    scity = readConf('City')
+    spostcode = readConf('Post/zip code')
+    scountry = readConf('Country')
+    scard = readConf('CardType')
+    scardno = readConf('Cardno')
+    smonth = readConf('CardMonth')
+    syear = readConf('CardYear')
+    scvv = readConf('CardCVV')
+
+    purchaseItem(sname, semail, stel, sadd1, sadd2, sadd3, scity, spostcode, scountry, scard, scardno, smonth, syear, sdrop, scatType, scolour, skeywords, ssize, scvv)
+
 matchedClothes = []
 def purchaseItem(sname, semail, stel, sadd1, sadd2, sadd3, scity, spostcode, scountry, scard, scardno, smonth, syear, sdrop, scatType, scolour, skeywords, ssize, scvv):
     timein = sdrop.split(":")
@@ -298,6 +379,41 @@ def purchaseItem(sname, semail, stel, sadd1, sadd2, sadd3, scity, spostcode, sco
     print("Complete the captcha and confirm the order manually. Thanks for using my bot ;)")
     print("If this bot helped you make money/cop a nice item, please consider donating on paypal at shaerthomas@gmail.com")
 
+def decr(value):
+    m = sha256()
+    m.update(password)
+    passwd = m.digest()
+    iv = m.digest()[::2]
+    cipher = aes.AESModeOfOperationCFB(passwd, iv = iv)
+    decrypted = cipher.decrypt(b64decode(value))
+    return decrypted[:-ord(decrypted[-1:])].decode('ascii')
+
+def encr(value):
+    m = sha256()
+    m.update(password)
+    key = m.digest()
+    iv = m.digest()[::2]
+    pad = 16 - len(value) % 16
+    raw = value + pad * chr(pad)
+    cipher = aes.AESModeOfOperationCFB(key, iv = iv)
+    return b64encode(cipher.encrypt(raw)).decode('ascii')
+
+def readConf(key):
+    config = ConfigParser()
+    config.read('config.cnf')
+    try:
+        return decr(config.get(config.sections()[0], key))
+    except TypeError:
+        return ''
+
+def writeToConf(key, value):
+    config = ConfigParser()
+    config.read('config.cnf')
+    encValue = encr(value)
+    config.set(config.sections()[0], key, encValue)
+    cfgfile = open('config.cnf', 'w')
+    config.write(cfgfile)
+    cfgfile.close()
 
 print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
 print("Thanks for using my bot. Please note this bot is experimental and in a very early development stage. \n")
@@ -311,14 +427,40 @@ print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
 print("\n Start filling in the details while the page loads should take ~30 seconds. If the page takes too longer then this restart the page.")
 print("\n Fill out all the details, make sure you get all of them right. If you need help please open 'readme.txt' or check the reddit post.")
 
+useConfig = False
+if not os.path.isfile('config.cnf'):
+    config = ConfigParser()
+    config.add_section('SupremeBotConfig')
+    for x in paydetails:
+        config.set('SupremeBotConfig', x, ' ')
+    cfgfile = open('config.cnf', 'w')
+    config.write(cfgfile)
+    cfgfile.close()
+    useConfig = False
+else:
+    inp = input('Do you want to use the stored payment details? (Yes/No) ')
+    if 'YES' in inp.upper() or 'Y' in inp.upper():
+        useConfig = True
+        inp = input('\nEnter your password to continue: ')
+        password = inp.encode('ascii')
+    else:
+        useConfig = False
+
+
 def openPage():
     rawPath = os.getcwd()
     a = rawPath.replace("\\", "/")
-    a += "/details.html"
+    if not useConfig:
+        a += "/details.html"
+    else:
+        a += "/details2.html"
     driver.get(a)
     driver.set_page_load_timeout(5)
     webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
-    readDetails()
+    if not useConfig:
+        readDetails()
+    else:
+        readProduct()
     
 openPage()
 
