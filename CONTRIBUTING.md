@@ -27,7 +27,5 @@ Other improvements:
 1. Change how to bot receives the information from the HTML website to the python code. I do not like having to type 'done', this was a temporary solution
 to the problem
 
-2. Encrypt sensitive information ~danielyc
-
 3. REMOVE ALL TIME.SLEEP(fixed constant) METHODS. This is temporary to deal with the fact that selenium does not always wait for elements to load before interacting with them. 
 Need to create a new way of checking if the element has loaded. 'Implicit wait' is what we need as quoted from CakeFleet.
