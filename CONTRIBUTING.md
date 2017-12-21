@@ -27,5 +27,7 @@ Other improvements:
 1. Change how to bot receives the information from the HTML website to the python code. I do not like having to type 'done', this was a temporary solution
 to the problem
 
-3. REMOVE ALL TIME.SLEEP(fixed constant) METHODS. This is temporary to deal with the fact that selenium does not always wait for elements to load before interacting with them. 
+2. REMOVE ALL TIME.SLEEP(fixed constant) METHODS. This is temporary to deal with the fact that selenium does not always wait for elements to load before interacting with them. 
 Need to create a new way of checking if the element has loaded. 'Implicit wait' is what we need as quoted from CakeFleet.
+
+3. Since selenium runs chrome driver as a 'automated browser for testing purposes' I'm not surprised that Supreme can detect selenium. I am currently looking into different libraries that could be used. Alternatively I may develop my own library that utilises screen imaging technology to read the website off chrome/ie/Firefox or any other browser without the browser ever knowing. This will eliminate the need for selenium entitely, allowing for greater flexiblity of our project.
