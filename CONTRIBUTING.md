@@ -22,6 +22,8 @@ Ways to deal with Captcha:
 
 1. load users chrome profile onto driver
 
+2. 2captcha
+
 Other improvements:
 
 1. Change how to bot receives the information from the HTML website to the python code. I do not like having to type 'done', this was a temporary solution
