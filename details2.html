@@ -125,14 +125,14 @@ function postData(my_object){
 	$id = my_object.id;
 	$barcode = my_object.value;
 	console.log($id);
-	details.push($id + " " + $barcode);
+	details.push($id + ":" + $barcode);
 }
 
 function writeHTML() {
 	document.write("<strong>Important! Please type 'done' in the cmd prompt to continue!</strong>");
 	for (var i = 0; i < details.length; i++) {
 		var str = details[i];
-		var res = str.split(" ");
+		var res = str.split(":");
 		document.write("<div id = "+"'"+res[0]+"'"+">"+res[1]+"</div></br>");
 	}
 }
