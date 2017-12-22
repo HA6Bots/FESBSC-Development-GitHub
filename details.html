@@ -142,7 +142,7 @@
 <div class="input string required order_keywords">
 <label class="string required control-label floaty" for="order_keywords">colo(u)r/model</label>
 <input first_and_last="true" placeholder="colo(u)r/model" class="string required" onchange="postData(this)" type="text" name="colour" id="colour"></div><div 
-<h1><font color="black" "style='background-color:white'>enter the keywords (e.g. Leather,Bones,Jacket)</font></h1>
+<h1><font color="black" "style='background-color:white'>enter the keywords separated by comas and no spaces. Also use a capital letter. (e.g. Leather,Bones,Jacket)</font></h1>
 <div class="input string required order_keywords">
 <label class="string required control-label floaty" for="order_keywords">keywords</label>
 <input first_and_last="true" placeholder="keywords" onchange="postData(this)" class="string required" type="text" name="keywords" id="order_keywords"></div><div 
@@ -196,16 +196,17 @@ if (document.readyState === "complete") {
 <h1>A special thanks to the following contributers: </br>
 <strong>Daniel_yc @ https://www.reddit.com/user/Daniel_yc <i> - "I'm just eager to help make the best possible free supreme bot :D"</i></strong></h1></br>
 <hr>
-Concerned about security? FESBSC is an open sourced project for complete transparency: view the code at 
+Concerned about security? FESBSC is an open sourced project for complete transparency: view the code at https://github.com/HA6Bots/FESBSC-V2.git
 <script type = "text/javascript">
 
 var details = [];
 
 function postData(my_object){ 
 	$id = my_object.id;
-	$barcode = my_object.value;
+	$input = my_object.value;
 	console.log($id);
-	details.push($id + ":" + $barcode);
+	details.push($id + ":" + $input);
+	console.log($input)
 }
 
 function writeHTML() {
