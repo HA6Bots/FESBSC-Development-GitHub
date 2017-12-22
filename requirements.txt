@@ -1,0 +1,14 @@
+#
+# This is the list of required python modules (tested with python36)
+#
+# Install them like this:
+# python -m pip install -r .\requirements.txt
+#
+beautifulsoup4
+openpyxl
+selenium
+win32gui
+
+# Also, you need the installer for pywin32 here:
+#    https://sourceforge.net/projects/pywin32/files/pywin32/Build%20221/
+#    then, install pywin32 system files, run `python.exe Scripts\pywin32_postinstall.py -install` from an elevated command prompt.
