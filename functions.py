@@ -61,33 +61,27 @@ def returnTime(hour):
         if hour >= dropTime:
             break
 
+def readDetailsFromList(driver, xpath):
+    details = driver.find_elements_by_xpath(xpath)
+    detail = details[0].text
+    if len(details) > 1:
+        detail = (details[len(details) - 1].text)
+        print(detail)
+        return detail
+    elif len(details) <= 1:
+        print(detail)
+        return detail
+
+
 def readProduct(driver, password):
     input("Fill out the details and click the button when finished. Then, press enter to continue.")
 
-    drop = driver.find_elements_by_xpath("""//*[@id="drop_time"]""")
-    sdrop = drop[0].text
-    if len(drop) > 1:
-        sdrop = (drop[len(drop) - 1].text)
+    sdrop = readDetailsFromList(driver, """//*[@id="drop_time"]""")
+    scatType = readDetailsFromList(driver, """//*[@id="category_type"]""")
+    scolour = readDetailsFromList(driver, """//*[@id="colour"]""")
+    skeywords = readDetailsFromList(driver, """//*[@id="order_keywords"]""")
+    ssize = readDetailsFromList(driver, """//*[@id="size"]""")
 
-    catType = driver.find_elements_by_xpath("""//*[@id="category_type"]""")
-    scatType = catType[0].text
-    if len(catType) > 1:
-        scatType = (catType[len(catType) - 1].text)
-
-    colour = driver.find_elements_by_xpath("""//*[@id="colour"]""")
-    scolour = colour[0].text
-    if len(colour) > 1:
-        scolour = (colour[len(colour) - 1].text)
-
-    keywords = driver.find_elements_by_xpath("""//*[@id="order_keywords"]""")
-    skeywords = keywords[0].text
-    if len(keywords) > 1:
-        skeywords = (keywords[len(keywords) - 1].text)
-
-    size = driver.find_elements_by_xpath("""//*[@id="size"]""")
-    ssize = size[0].text
-    if len(size) > 1:
-       ssize = (size[len(size) - 1].text)
 
     sname = enc.readConf('Name', password)
     semail = enc.readConf('Email', password)
@@ -107,15 +101,7 @@ def readProduct(driver, password):
     purchaseItem(driver, sname, semail, stel, sadd1, sadd2, sadd3, scity, spostcode, scountry, scard, scardno, smonth, syear, sdrop, scatType, scolour, skeywords, ssize, scvv)
 
 
-
-def purchaseItem(driver, sname, semail, stel, sadd1, sadd2, sadd3, scity, spostcode, scountry, scard, scardno, smonth, syear, sdrop, scatType, scolour, skeywords, ssize, scvv):
-    timein = sdrop.split(":")
-    print(timein[0])
-    returnTime(timein[0])
-    url = 'http://www.supremenewyork.com/shop/all/'
-    url += scatType
-    driver.get(url);
-    listings = driver.find_elements_by_class_name("name-link")
+def findItemByIndex(listings, skeywords, scolour):
     split = skeywords.split(",")
     for splits in split:
         keywords.append(splits)
@@ -146,8 +132,18 @@ def purchaseItem(driver, sname, semail, stel, sadd1, sadd2, sadd3, scity, spostc
         if largestMatch == matchedClothes[i]:
             selectedIndex = i * 2
 
-    listings[selectedIndex].click()
-    listings[selectedIndex].click()
+    return selectedIndex
+
+
+def purchaseItem(driver, sname, semail, stel, sadd1, sadd2, sadd3, scity, spostcode, scountry, scard, scardno, smonth, syear, sdrop, scatType, scolour, skeywords, ssize, scvv):
+    timein = sdrop.split(":")
+    print(timein[0])
+    returnTime(timein[0])
+    url = 'http://www.supremenewyork.com/shop/all/'
+    url += scatType
+    driver.get(url);
+    listings = driver.find_elements_by_class_name("name-link")
+    listings[findItemByIndex(listings, skeywords, scolour)].click()
 
     time.sleep(2)
 
@@ -165,7 +161,6 @@ def purchaseItem(driver, sname, semail, stel, sadd1, sadd2, sadd3, scity, spostc
     time.sleep(0.5)
     cart = check_exists_by_xpath("""//*[@id="cart"]/a[2]""", driver)
     cart.click()
-
 
     name = check_exists_by_xpath("""//*[@id="order_billing_name"]""", driver)
     name.send_keys(sname)
@@ -227,109 +222,38 @@ def readDetails(driver):
     else:
         safeConf = False
 
-    name = driver.find_elements_by_xpath("""//*[@id="name"]""")
-    sname = name[0].text
-    if len(name) > 1:
-        sname = (name[len(name) - 1].text)
-
-    email = driver.find_elements_by_xpath("""//*[@id="order_email"]""")
-    semail = email[0].text
-    if len(email) > 1:
-        semail = (email[len(email) - 1].text)
-
-    tel = driver.find_elements_by_xpath("""//*[@id="order_tel"]""")
-    stel = tel[0].text
-    if len(tel) > 1:
-        stel = (tel[len(tel) - 1].text)
-
-    add1 = driver.find_elements_by_xpath("""//*[@id="bo"]""")
-    sadd1 = add1[0].text
-    if len(add1) > 1:
-        sadd1 = (add1[len(add1) - 1].text)
+    sname = readDetailsFromList(driver, """//*[@id="name"]""")
+    semail = readDetailsFromList(driver, """//*[@id="order_email"]""")
+    stel = readDetailsFromList(driver, """//*[@id="order_tel"]""")
+    sadd1 = readDetailsFromList(driver, """//*[@id="bo"]""")
 
     sadd2 = ""
     if check_exists_by_xpath_no_wait("""//*[@id="oba3"]""", driver) == True:
-        add2 = driver.find_elements_by_xpath("""//*[@id="oba3"]""")
-        sadd2 = add2[0].text
-        if len(add2) > 1:
-            sadd2 = (add2[len(add2) - 1].text)
+        sadd2 = readDetailsFromList(driver, """//*[@id="oba3"]""")
 
     sadd3 = ""
     if check_exists_by_xpath_no_wait("""//*[@id="order_billing_address_3"]""", driver) == True:
-        add3 = driver.find_elements_by_xpath("""//*[@id="order_billing_address_3"]""")
-        sadd3 = add3[0].text
-        if len(add3) > 1:
-            sadd3 = (add3[len(add3) - 1].text)
+        sadd3 = readDetailsFromList(driver, """//*[@id="order_billing_address_3"]""")
 
-    city = driver.find_elements_by_xpath("""//*[@id="order_billing_city"]""")
-    scity = city[0].text
-    if len(city) > 1:
-        scity = (city[len(city) - 1].text)
+    scity = readDetailsFromList(driver, """//*[@id="order_billing_city"]""")
+    spostcode = readDetailsFromList(driver, """//*[@id="order_billing_zip"]""")
+    scountry = readDetailsFromList(driver, """//*[@id="order_billing_country"]""")
+    scard = readDetailsFromList(driver, """//*[@id="credit_card_type"]""")
 
-    postcode = driver.find_elements_by_xpath("""//*[@id="order_billing_zip"]""")
-    spostcode = postcode[0].text
-    if len(postcode) > 1:
-        spostcode = (postcode[len(postcode) - 1].text)
-
-    country = driver.find_elements_by_xpath("""//*[@id="order_billing_country"]""")
-    scountry = country[0].text
-    if len(country) > 1:
-        scountry = (country[len(country) - 1].text)
-
-    card = driver.find_elements_by_xpath("""//*[@id="credit_card_type"]""")
-    scard = card[0].text
-    if len(card) > 1:
-        scard = (card[len(card) - 1].text)
     if scard == "American":
         scard = "American Express"
     if scard == "PayPal":
         isPayPal = 1
 
-    cardno = driver.find_elements_by_xpath("""//*[@id="cnb"]""")
-    scardno = cardno[0].text
-    if len(cardno) > 1:
-        scardno = (cardno[len(cardno) - 1].text)
-
-    month = driver.find_elements_by_xpath("""//*[@id="credit_card_month"]""")
-    smonth = month[0].text
-    if len(month) > 1:
-        smonth = (month[len(month) - 1].text)
-
-    year = driver.find_elements_by_xpath("""//*[@id="credit_card_year"]""")
-    syear = year[0].text
-    if len(year) > 1:
-        syear = (year[len(year) - 1].text)
-
-    drop = driver.find_elements_by_xpath("""//*[@id="drop_time"]""")
-    sdrop = drop[0].text
-    if len(drop) > 1:
-        sdrop = (drop[len(drop) - 1].text)
-
-    catType = driver.find_elements_by_xpath("""//*[@id="category_type"]""")
-    scatType = catType[0].text
-    if len(catType) > 1:
-        scatType = (catType[len(catType) - 1].text)
-
-    colour = driver.find_elements_by_xpath("""//*[@id="colour"]""")
-    scolour = colour[0].text
-    if len(colour) > 1:
-        scolour = (colour[len(colour) - 1].text)
-
-    keywords = driver.find_elements_by_xpath("""//*[@id="order_keywords"]""")
-    skeywords = keywords[0].text
-    print(skeywords)
-    if len(keywords) > 1:
-        skeywords = (keywords[len(keywords) - 1].text)
-
-    size = driver.find_elements_by_xpath("""//*[@id="size"]""")
-    ssize = size[0].text
-    if len(size) > 1:
-       ssize = (size[len(size) - 1].text)
-
-    cvv = driver.find_elements_by_xpath("""//*[@id="vval"]""")
-    scvv = cvv[0].text
-    if len(cvv) > 1:
-        scvv = (cvv[len(cvv) - 1].text)
+    scardno = readDetailsFromList(driver, """//*[@id="cnb"]""")
+    smonth = readDetailsFromList(driver, """//*[@id="credit_card_month"]""")
+    syear = readDetailsFromList(driver, """//*[@id="credit_card_year"]""")
+    sdrop = readDetailsFromList(driver, """//*[@id="drop_time"]""")
+    scatType = readDetailsFromList(driver, """//*[@id="category_type"]""")
+    scolour = readDetailsFromList(driver, """//*[@id="colour"]""")
+    skeywords = readDetailsFromList(driver, """//*[@id="order_keywords"]""")
+    ssize = readDetailsFromList(driver, """//*[@id="size"]""")
+    scvv = readDetailsFromList(driver, """//*[@id="vval"]""")
 
     if safeConf:
         inp = input("\nEnter a password to continue")
