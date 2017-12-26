@@ -11,12 +11,16 @@ Create a new HTML page for each region and get the bot to automatically check wh
 (Perhaps a lot easier) Add more shipping values in the HTML. If the shipping address is a state we could use ajax to create a new select option for states.
 
 
-2. Allow the bot to be able to run on Mac/Linux. Apparently theres also a problem with Windows 10, I would appreciate if someone could confirm this.
+2. Allow the bot to be able to run on Mac/Linux. Apparently theres also a problem with Windows 10.
 
 3. FIX THE LOADING TIME OF THE HTML FILE! Selenium cannot interact with the chrome page till it is fully loaded. That is why I used ajax to only allow the user
 to submit the data when the page has loaded via a button. The HTML file was saved off of
 Supreme's checkout page to save time. I'm sure this has led to a lot of broken code which is causing the page to take forever to load. At some point
 the HTML page needs to be recreated completely, but for now the loading time has to be increased!
+
+4. Fix the clothes matching code, while it works sometimes I have heard reports it does not work 100% of the time and myself have encountered bugs with the code.
+
+5. Fix the drop time code. I have experienced crashes with the code when attempting to convert numbers with an 0 in front of it - e.g. 08 into a integer.
 
 Ways to deal with Captcha:
 
