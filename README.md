@@ -13,6 +13,7 @@ The official source code for FESBSC. Development is still in progress.
 - High chance to bypass reCAPTCHA if you login a head of time into a google account in the chrome window opened by the bot
 - Automatically generate a log file to help debugging if problems occur
 # Usage
+### FOR NOW USE THE SCRIPT LOCATED IN THE "CommandL" folder
 1. If you have saved payment details, you can enter the used password and check if the information is correct.
 Else you enter payment information and chose to save the information.
 2. Enter the product category
