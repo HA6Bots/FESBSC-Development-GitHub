@@ -1,3 +1,8 @@
+'''
+###################################
+THIS FILE IS NOT NECESSARY  FOR NOW
+###################################
+
 import os.path
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -17,19 +22,6 @@ matchedClothes = []
 
 useConfig = False
 password = ''
-
-def openPage(driver):
-    rawPath = os.getcwd()
-    a = rawPath.replace("\\", "/")
-    if not useConfig:
-        a += "/details.html"
-    else:
-        a += "/details2.html"
-    driver.get(a)
-    if not useConfig:
-        readDetails(driver)
-    else:
-        readProduct(driver, password)
 
 
 def check_exists_by_xpath_no_wait(xpath, driver):
@@ -286,7 +278,5 @@ def intro():
     print("HA6")
     print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
 
-    print("\n Start filling in the details while the page loads should take ~30 seconds. If the page takes too longer then this restart the page.")
     print("\n Fill out all the details, make sure you get all of them right. If you need help please open 'readme.txt' or check the reddit post.")
-
-
+'''
