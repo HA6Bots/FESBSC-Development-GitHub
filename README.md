@@ -7,14 +7,15 @@ The official source code for FESBSC. Development is still in progress.
 # Features
 - Save payment information locally encrypted with AES
 - Purchase **ONE** item at a time
-- Strict item selection. This will only buy an item which has a **100%** match to your specified information. This will try to guaranty NO wrong purchases due to timing or really similar named items
+- Strict item selection. This will only buy an item which has a **100%** match to your specified information. This will try to guaranty NO wrong purchases due to timing or similar named items
 - Select a specific size OR buy the first available size
 - Time based purchase
 - High chance to bypass reCAPTCHA if you login a head of time into a google account in the chrome window opened by the bot
 - Automatically generate a log file to help debugging if problems occur
-#Usage
+# Usage
+### USE "Main.py" LOCATED IN THE "CommandL" FOLDER WITH PYTHON 3
 1. If you have saved payment details, you can enter the used password and check if the information is correct.
-Else you enter payment information and chose to save the information.
+Else you enter payment information and chose if you want to save the information.
 2. Enter the product category
 3. Enter keywords, use a comma to separate words e.g. RefleCTIve,slEEve,LoGo,PuFFer (not case sensitive)
 4. Enter the product size or enter "D" to select the first available size or if there is no selectable size
