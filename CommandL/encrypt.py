@@ -23,7 +23,7 @@ def readConf(key):
         exit(1)
 
 
-def initConf(paydetails):
+def initConf():
     config = ConfigParser()
     config.add_section('SupremeBotConfig')
     for x in paydetails:

@@ -30,11 +30,11 @@ import encrypt as enc
 LOGFILE = True
 
 paydetails = OrderedDict(
-    [('Name', 'Daniel'), ('Email', 'd@a.nl'), ('Phone', '0611111111'), ('Addr1', 'D weg 17'), ('Addr2', ''),
-     ('Addr3', '0'),
-     ('City', 'vijf'), ('Post/zip code', '2141aa'), ('Country', 'NL'), ('Cardno', '5555555555555555'),
-     ('CardCVV', '555'),
-     ('CardMonth', '05'), ('CardYear', '2025'), ('CardType', 'Visa')])
+    [('Name', ''), ('Email', ''), ('Phone', ''), ('Addr1', ''), ('Addr2', ''),
+     ('Addr3', ''),
+     ('City', ''), ('Post/zip code', ''), ('Country', ''), ('Cardno', ''),
+     ('CardCVV', ''),
+     ('CardMonth', ''), ('CardYear', ''), ('CardType', '')])
 
 categoryList = ['jackets', 'shirts', 'tops/sweaters', 'sweatshirts', 'pants', 'hats', 'bags',
                 'accessories', 'shoes', 'skate']
@@ -76,6 +76,19 @@ def selectSize():
         else:
             print("Please enter one of the listed sizes exactly")
             print(sizeInput)
+            return selectSize()
+    elif selectedCategory == "shoes":
+        string = "Size format "
+        string += selectedCategory
+        string += ": US 9 / UK 8, US 9.5 / UK 8.5, US 10 / UK 9"
+        print(string)
+        sizeInput = input("Select size: ")
+        if 'US ' in sizeInput and ' / UK ' in sizeInput:
+            return sizeInput
+        elif sizeInput == "D":
+            sizeC = 1
+        else:
+            print("Please enter a correctly formated size")
             return selectSize()
 
     else:
@@ -146,7 +159,7 @@ def openChrome():
     service.start()
     driver = webdriver.Remote(service.service_url, capabilities)
 
-    inp = input('Do you want to use strict item selection? Yes / No ')
+    inp = input('Do you want to use strict item selection? [Y]es/[N]o: ')
     if inp.upper() == 'YES' or inp.upper() == 'Y':
         loop = True
     else:
@@ -196,11 +209,11 @@ def openChrome():
 
     time.sleep(0.8)
 
-    if sizeC != 1:
-        size = Select(driver.find_element_by_id("size"))
-        size.select_by_visible_text(selectedSize)
-
     try:
+        if sizeC != 1:
+            size = Select(driver.find_element_by_id("size"))
+            size.select_by_visible_text(selectedSize)
+
         add = driver.find_element_by_xpath("""//*[@id="add-remove-buttons"]/input""")
         add.click()
     except NoSuchElementException:
@@ -288,7 +301,7 @@ def getPDetails():
     for x in paydetails:
         paydetails[x] = input('Enter %s: ' % (x))
 
-    inp = input('\n\nDo you want to safe your details encrypted for easy future use? (yes/no) ')
+    inp = input('\n\nDo you want to safe your details encrypted for easy future use? [Y]es/[N]o: ')
     if inp.upper() == 'YES' or inp.upper() == 'Y':
         inp = input('Enter a password: ')
         enc.password = inp.encode('ascii')
@@ -334,7 +347,8 @@ def main():
         "\nFill out all the details, make sure you get all of them right. If you need help please open 'README.md' or check the reddit post.")
 
     if not path.isfile('config.cnf'):
-        enc.initConf(paydetails)
+        enc.paydetails = paydetails
+        enc.initConf()
         getPDetails()
     else:
         inp = input('Do you want to use your stored details? [Y]es/[N]o: ')
