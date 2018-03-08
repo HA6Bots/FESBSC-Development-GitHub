@@ -291,7 +291,7 @@ def getPDetails():
     inp = input('\n\nDo you want to safe your details encrypted for easy future use? (yes/no) ')
     if inp.upper() == 'YES' or inp.upper() == 'Y':
         inp = input('Enter a password: ')
-        password = inp.encode('ascii')
+        enc.password = inp.encode('ascii')
         for x in paydetails:
             enc.writeToConf(x, paydetails[x])
 
@@ -334,7 +334,7 @@ def main():
         "\nFill out all the details, make sure you get all of them right. If you need help please open 'README.md' or check the reddit post.")
 
     if not path.isfile('config.cnf'):
-        enc.initConf()
+        enc.initConf(paydetails)
         getPDetails()
     else:
         inp = input('Do you want to use your stored details? [Y]es/[N]o: ')
