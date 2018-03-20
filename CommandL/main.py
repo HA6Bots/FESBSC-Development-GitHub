@@ -18,6 +18,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import WebDriverException
 import win32com.client as comclt
 import datetime
 import re
@@ -154,6 +155,27 @@ def returnTime():
             break
 
 
+def sendKeys(value, field, driver):
+    if len(value) <= 1:
+        return None
+    try:
+        driver.execute_script("arguments[0].value = '" + value + "';", field)
+    except WebDriverException:
+        pass
+
+
+def selectText(value, obj, attr=False):
+    if attr:
+        try:
+            obj.select_by_value(value)
+        except WebDriverException:
+            return None
+    try:
+        obj.select_by_visible_text(value)
+    except WebDriverException:
+        return None
+
+
 def openChrome():
     matchedClothes = []
     service.start()
@@ -194,7 +216,9 @@ def openChrome():
         for i in range(0, len(checkedListings), 1):
             if checkedListings[i] > largestMatch:
                 largestMatch = checkedListings[i]
-        if largestMatch == len(keywords) + 1:
+        if selectedColour != '' and largestMatch == len(keywords) + 1:
+            break
+        elif selectedColour == '' and largestMatch == len(keywords):
             break
         elif not loop:
             break
@@ -212,8 +236,19 @@ def openChrome():
     try:
         if sizeC != 1:
             size = Select(driver.find_element_by_id("size"))
-            size.select_by_visible_text(selectedSize)
-
+            op = size.options
+            found = False
+            for x in op:
+                if selectedSize in x.text:
+                    found = True
+                    break
+            if found:
+                selectText(selectedSize, size)
+            else:
+                print("Sorry the item size is sold out!")
+                return None
+            
+            
         add = driver.find_element_by_xpath("""//*[@id="add-remove-buttons"]/input""")
         add.click()
     except NoSuchElementException:
@@ -225,47 +260,47 @@ def openChrome():
     cart.click()
 
     name = check_exists_by_xpath("""//*[@id="order_billing_name"]""", driver)
-    name.send_keys(paydetails['Name'])
+    sendKeys(paydetails['Name'], name, driver)
 
     email = check_exists_by_xpath("""//*[@id="order_email"]""", driver)
-    email.send_keys(paydetails['Email'])
+    sendKeys(paydetails['Email'], email, driver)
 
     phone = check_exists_by_xpath("""//*[@id="order_tel"]""", driver)
-    phone.send_keys(paydetails['Phone'])
+    sendKeys(paydetails['Phone'], phone, driver)
 
     add1 = check_exists_by_xpath("""//*[@id="bo"]""", driver)
-    add1.send_keys(paydetails['Addr1'])
+    sendKeys(paydetails['Addr1'], add1, driver)
 
     add2 = check_exists_by_xpath("""//*[@id="oba3"]""", driver)
-    add2.send_keys(paydetails['Addr2'])
+    sendKeys(paydetails['Addr2'], add2, driver)
 
     add3 = check_exists_by_xpath("""//*[@id="order_billing_address_3"]""", driver)
-    add3.send_keys(paydetails['Addr3'])
+    sendKeys(paydetails['Addr3'], add3, driver)
 
     city = check_exists_by_xpath("""//*[@id="order_billing_city"]""", driver)
-    city.send_keys(paydetails['City'])
+    sendKeys(paydetails['City'], city, driver)
 
     postcode = check_exists_by_xpath("""//*[@id="order_billing_zip"]""", driver)
-    postcode.send_keys(paydetails['Post/zip code'])
+    sendKeys(paydetails['Post/zip code'], postcode, driver)
 
-    country = check_exists_by_xpath("""//*[@id="order_billing_country"]""", driver)
-    country.send_keys(paydetails['Country'])
+    country = Select(driver.find_element_by_id("order_billing_country"))
+    selectText(paydetails['Country'], country, True)
 
     if paydetails['CardType'] != 1:
         cardno = check_exists_by_xpath("""//*[@id="cnb"]""", driver)
-        cardno.send_keys(paydetails['Cardno'])
+        sendKeys(paydetails['Cardno'], cardno, driver)
 
         cvv = check_exists_by_xpath("""//*[@id="vval"]""", driver)
-        cvv.send_keys(paydetails['CardCVV'])
+        sendKeys(paydetails['CardCVV'], cvv, driver)
 
         cardType = Select(driver.find_element_by_id("credit_card_type"))
-        cardType.select_by_visible_text(paydetails['CardType'])
+        selectText(paydetails['CardType'], cardType)
 
         expiraryDate1 = Select(driver.find_element_by_id("credit_card_month"))
-        expiraryDate1.select_by_visible_text(paydetails['CardMonth'])
+        selectText(paydetails['CardMonth'], expiraryDate1)
 
         expiraryDate2 = Select(driver.find_element_by_id("credit_card_year"))
-        expiraryDate2.select_by_visible_text(paydetails['CardYear'])
+        selectText(paydetails['CardYear'], expiraryDate2)
 
     tickBox = driver.find_element_by_xpath("""//*[@id="cart-cc"]/fieldset/p/label/div/ins""")
     tickBox.click()
