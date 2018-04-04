@@ -19,6 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.proxy import Proxy, ProxyType
 import win32com.client as comclt
 import datetime
 import re
@@ -29,6 +30,8 @@ import pytz
 import encrypt as enc
 
 LOGFILE = True
+
+pDescr = {'Country': '(UK, DE, FR, ...)', 'CardMonth': '(01, 02, ..., 12)', 'Name': '(first and last name)'}
 
 paydetails = OrderedDict(
     [('Name', ''), ('Email', ''), ('Phone', ''), ('Addr1', ''), ('Addr2', ''),
@@ -334,7 +337,10 @@ def selectCategory():
 def getPDetails():
     global password
     for x in paydetails:
-        paydetails[x] = input('Enter %s: ' % (x))
+        if x in pDescr:
+            paydetails[x] = input('Enter %s %s: ' % (x, pDescr[x]))
+        else:
+            paydetails[x] = input('Enter %s: ' % (x))
 
     inp = input('\n\nDo you want to safe your details encrypted for easy future use? [Y]es/[N]o: ')
     if inp.upper() == 'YES' or inp.upper() == 'Y':
@@ -369,8 +375,16 @@ def main():
     wsh = comclt.Dispatch("WScript.Shell")
     chromePath = readPath()
 
+    prox = '47.22.132.134:19764'
+    pro = Proxy()
+    pro.proxy_type = ProxyType.MANUAL
+    pro.http_proxy = prox
+    pro.socks_proxy = prox
+    pro.ssl_proxy = prox
+
     service = service.Service('chromedriver.exe')
     capabilities = {'chrome.binary': chromePath}
+    #pro.add_to_capabilities(capabilities)
 
     print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
     print("Thanks for using our bot. Please note this bot is experimental and in a very early development stage.")
