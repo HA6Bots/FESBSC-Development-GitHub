@@ -187,7 +187,6 @@ def selectText(value, obj, attr=False):
 
 
 def openChrome():
-    matchedClothes = []
     service.start()
     driver = webdriver.Remote(service.service_url, capabilities)
 
@@ -199,6 +198,7 @@ def openChrome():
 
     returnTime()
     while True:
+        matchedClothes = []
         url = 'http://www.supremenewyork.com/shop/all/'
         url += selectedCategory
         driver.get(url)
@@ -215,7 +215,7 @@ def openChrome():
                     if keyword.encode('ascii', 'ignore') in split.encode('ascii', 'ignore'):
                         matches += 1
                 coloura = listings[i].text
-                if selectedColour.encode('ascii', 'ignore') == coloura.encode('ascii', 'ignore'):
+                if selectedColour.encode('ascii', 'ignore') in coloura.encode('ascii', 'ignore'):
                     colour = 1
                 if matches != 0:
                     matches += colour
