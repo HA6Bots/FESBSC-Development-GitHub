@@ -26,7 +26,7 @@ Else you enter payment information and chose if you want to save the information
 **OPTIONAL** open a new tab and login into a google account to try to bypass reCAPTCHA
 9. Keep the bot and the chrome window open and pray to the supreme gods
 ### Contribution and issues
-If you need help or advice, contact Daniel_yc on reddit or danielyc.moddev@gmail.com
+If you need help or advice, add danielyc&#35;9114 on discord or send an email to danielyc.moddev@gmail.com
 
 If you encounter any problems with the bot or if you have enhancement suggestion,
 make an Issue and please attach the logfile (if generated) or the python error

@@ -48,8 +48,15 @@ checkedListings = []
 password = b'insecure password'
 
 
+def getLoc(f):
+    loc = path.dirname(__file__)
+    if len(loc) < 1:
+        return f
+    return loc + '\\' + f
+
+
 def readPath():
-    f = open("chromepath.txt", "r").readlines()
+    f = open(getLoc("chromepath.txt"), "r").readlines()
     makeitastring = ''.join(map(str, f))
     return makeitastring
 
@@ -57,7 +64,7 @@ def readPath():
 def writeLog(txt):
     if not LOGFILE:
         return None
-    f = open('logfile.txt', 'a')
+    f = open(getLoc('logfile.txt'), 'a')
     f.write(str(txt) + '\n')
     f.close()
 
@@ -286,7 +293,7 @@ def openChrome():
     postcode = check_exists_by_xpath("""//*[@id="order_billing_zip"]""", driver)
     sendKeys(paydetails['Post/zip code'], postcode, driver)
 
-    country = Select(driver.find_element_by_id("order_billing_country"))
+    country = Select(driver.find_element_by_name("order[billing_country]"))
     selectText(paydetails['Country'], country, True)
 
     if paydetails['CardType'] != 1:
@@ -299,10 +306,10 @@ def openChrome():
         cardType = Select(driver.find_element_by_id("credit_card_type"))
         selectText(paydetails['CardType'], cardType)
 
-        expiraryDate1 = Select(driver.find_element_by_id("credit_card_month"))
+        expiraryDate1 = Select(driver.find_element_by_name("credit_card[month]"))
         selectText(paydetails['CardMonth'], expiraryDate1)
 
-        expiraryDate2 = Select(driver.find_element_by_id("credit_card_year"))
+        expiraryDate2 = Select(driver.find_element_by_name("credit_card[year]"))
         selectText(paydetails['CardYear'], expiraryDate2)
 
     tickBox = driver.find_element_by_xpath("""//*[@id="cart-cc"]/fieldset/p/label/div/ins""")
@@ -375,16 +382,8 @@ def main():
     wsh = comclt.Dispatch("WScript.Shell")
     chromePath = readPath()
 
-    prox = '47.22.132.134:19764'
-    pro = Proxy()
-    pro.proxy_type = ProxyType.MANUAL
-    pro.http_proxy = prox
-    pro.socks_proxy = prox
-    pro.ssl_proxy = prox
-
-    service = service.Service('chromedriver.exe')
+    service = service.Service(getLoc('chromedriver.exe'))
     capabilities = {'chrome.binary': chromePath}
-    #pro.add_to_capabilities(capabilities)
 
     print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
     print("Thanks for using our bot. Please note this bot is experimental and in a very early development stage.")
@@ -395,7 +394,7 @@ def main():
     print(
         "\nFill out all the details, make sure you get all of them right. If you need help please open 'README.md' or check the reddit post.")
 
-    if not path.isfile('config.cnf'):
+    if not path.isfile(getLoc('config.cnf')):
         enc.paydetails = paydetails
         enc.initConf()
         getPDetails()

@@ -8,6 +8,7 @@ beautifulsoup4
 openpyxl
 selenium
 win32gui
+pytz
 
 # Also, you need the installer for pywin32 here:
 #    https://sourceforge.net/projects/pywin32/files/pywin32/Build%20221/
