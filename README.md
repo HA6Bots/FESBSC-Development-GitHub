@@ -6,7 +6,7 @@ The official source code for FESBSC. Development is still in progress.
 3. Counter new anti-bot counter-measures
 # Features
 - Save payment information locally encrypted with AES
-- Purchase **ONE** item at a time
+- Purchase multiple items at once, no more than one of each item allowed.
 - Strict item selection. This will only buy an item which has a **100%** match to your specified information. This will try to guaranty NO wrong purchases due to timing or similar named items
 - Select a specific size OR buy the first available size
 - Time based purchase
@@ -19,7 +19,7 @@ Else you enter payment information and chose if you want to save the information
 2. Enter the product category
 3. Enter keywords, use a comma to separate words e.g. RefleCTIve,slEEve,LoGo,PuFFer (not case sensitive)
 4. Enter the product size or enter "D" to select the first available size or if there is no selectable size
-5. Enter a colour
+5. Enter a colour or leave blank to select the first available colour
 6. Confirm the given information for typos and such
 7. Enter if you want to use **STRICT** item selection (RECOMMENDED TO USE THIS FEATURE BECAUSE OF POSSIBLE TIMING ISSUES)
 8. Enter the drop hour e.g. enter 14 for 2:00PM
