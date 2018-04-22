@@ -21,9 +21,8 @@ from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 import win32com.client as comclt
-import datetime
-import re
-import sys
+import datetime, re, sys
+from random import random
 from datetime import datetime
 import pytz
 
@@ -40,12 +39,16 @@ paydetails = OrderedDict(
      ('CardCVV', ''),
      ('CardMonth', ''), ('CardYear', ''), ('CardType', '')])
 
-categoryList = ['jackets', 'shirts', 'tops/sweaters', 'sweatshirts', 'pants', 'hats', 'bags',
+categoryList = ['jackets', 'shirts', 'tops_sweaters', 'sweatshirts', 'pants', 'hats', 'bags',
                 'accessories', 'shoes', 'skate']
 
 checkedListings = []
 
 password = b'insecure password'
+
+
+def pause():
+    time.sleep(random())
 
 
 def getLoc(f):
@@ -74,7 +77,7 @@ def selectSize():
     sizeC = 0
     sizes = ["Small", "Medium", "Large", "XLarge"]
     print("Select Size (Alternatively simply enter 'D' for the first available size)")
-    if selectedCategory == "jackets" or selectedCategory == "shirts" or selectedCategory == "tops/sweaters" or selectedCategory == "sweatshirts":
+    if selectedCategory == "jackets" or selectedCategory == "shirts" or selectedCategory == "tops_sweaters" or selectedCategory == "sweatshirts":
         string = "Possible Sizes for "
         string += selectedCategory
         string += ": Small, Medium, Large, XLarge"
@@ -113,27 +116,15 @@ def selectSize():
 
 def selectColour():
     colour = input("Select a colour/model (please use a capital letter e.g. Black/Red/Blue) ").title()
-    answer = input("Are you sure about the settings? [Y]es/[N]o: ").upper()
-    if answer == "Y":
-        return colour
-    elif answer == "N":
-        return selectColour()
+    return colour
 
 
-def listOptions():
-    print("-------------------------------------")
-    category = "Selected Category: "
-    category += selectedCategory
-    print(category)
-    print("Selected Keywords: ")
-    print(keywords)
-    print("Selected Size: ")
-    print(selectedSize)
-    colour = "Selected Colour: "
-    colour += selectedColour
-    print(colour)
-    print("Please make sure all of these values are correct. If they are not please restart the program and try again.")
-    print("If you have any questions please view the respective reddit post or email me at shaerthomas@gmail.com")
+def listOptions(cat, key, size, col):
+    print("\n-------------------------------------")
+    print('Selected category: ' + cat)
+    print('Selected keywords: ' + key)
+    print('Selected size:     ' + size)
+    print('Selected colour:   ' + col)
     print("-------------------------------------\n")
 
 
@@ -186,51 +177,46 @@ def selectText(value, obj, attr=False):
         return None
 
 
-def openChrome():
-    service.start()
-    driver = webdriver.Remote(service.service_url, capabilities)
+def searchItem(item):
+    url = 'http://www.supremenewyork.com/shop/all/'
+    url += item['selectedCategory']
 
-    inp = input('Do you want to use strict item selection? [Y]es/[N]o: ')
-    if inp.upper() == 'YES' or inp.upper() == 'Y':
-        loop = True
-    else:
-        loop = False
-
-    returnTime()
     while True:
         matchedClothes = []
-        url = 'http://www.supremenewyork.com/shop/all/'
-        url += selectedCategory
+        checkedListings = []
         driver.get(url)
 
         listings = driver.find_elements_by_class_name("name-link")
-
         for i in range(0, len(listings), 1):
             if i % 2 != 0:
                 text = listings[i - 1].text
                 split = text.strip()
                 matches = 0
                 colour = 0
-                for keyword in keywords:
+                for keyword in item['keywords']:
                     if keyword.encode('ascii', 'ignore') in split.encode('ascii', 'ignore'):
                         matches += 1
-                coloura = listings[i].text
-                if selectedColour.encode('ascii', 'ignore') in coloura.encode('ascii', 'ignore'):
-                    colour = 1
+                try:
+                    coloura = listings[i].text
+                    if item['selectedColour'].encode('ascii', 'ignore') in coloura.encode('ascii', 'ignore'):
+                        colour = 1
+                except AttributeError:
+                    colour = 0
                 if matches != 0:
                     matches += colour
-                writeLog([keywords, split, selectedColour, coloura, matches])
+                writeLog([item['keywords'], split, item['selectedColour'], coloura, matches, len(item['keywords']) + 1])
                 checkedListings.append(matches)
                 matchedClothes.append(matches)
+
         largestMatch = 0
         for i in range(0, len(checkedListings), 1):
             if checkedListings[i] > largestMatch:
                 largestMatch = checkedListings[i]
-        if selectedColour != '' and largestMatch == len(keywords) + 1:
+        if item['selectedColour'] != '' and largestMatch == len(item['keywords']) + 1:
             break
-        elif selectedColour == '' and largestMatch == len(keywords):
+        elif item['selectedColour'] == '' and largestMatch == len(item['keywords']):
             break
-        elif not loop:
+        elif not strict:
             break
 
     selectedIndex = 0
@@ -241,7 +227,7 @@ def openChrome():
 
     listings[selectedIndex].click()
 
-    time.sleep(0.8)
+    time.sleep(0.5+random())
 
     try:
         if sizeC != 1:
@@ -249,23 +235,41 @@ def openChrome():
             op = size.options
             found = False
             for x in op:
-                if selectedSize in x.text:
+                if item['selectedSize'] in x.text:
                     found = True
                     break
             if found:
-                selectText(selectedSize, size)
+                selectText(item['selectedSize'], size)
             else:
                 print("Sorry the item size is sold out!")
                 return None
-            
-            
+
         add = driver.find_element_by_xpath("""//*[@id="add-remove-buttons"]/input""")
         add.click()
     except NoSuchElementException:
         print("Sorry the item is sold out!")
-        return
+        return None
+    pause()    
 
-    time.sleep(0.5)
+
+def openChrome():
+    global driver, strict
+    service.start()
+    driver = webdriver.Remote(service.service_url, capabilities)
+
+    inp = input('Do you want to use strict item selection? [Y]es/[N]o: ')
+    if inp.upper() == 'YES' or inp.upper() == 'Y':
+        strict = True
+    else:
+        strict = False
+
+    returnTime()
+    for it in items:
+        searchItem(it)
+        
+
+
+def cart():
     cart = check_exists_by_xpath("""//*[@id="cart"]/a[2]""", driver)
     cart.click()
 
@@ -322,16 +326,16 @@ def openChrome():
 
 
 def selectKeywords():
-    global keywords
     keywords = []
     keywordsInput = input("Select keywords, use a comma to separate tags e.g. Reflective,Sleeve,Logo,Puffer \n")
     for splits in keywordsInput.strip().replace(" ", "").title().split(","):
         keywords.append(splits)
+    return keywords
 
 
 def selectCategory():
     categoryInput = input(
-        "Select type: jackets, shirts, tops/sweaters, sweatshirts, pants, hats, bags, accessories, shoes, skate\n").lower()
+        "Select type: jackets, shirts, tops_sweaters, sweatshirts, pants, hats, bags, accessories, shoes, skate\n").lower()
     if categoryInput.lower() in categoryList:
         selected = categoryInput.lower()
         print('Selected Category: %s' % (selected))
@@ -358,11 +362,11 @@ def getPDetails():
 
 
 def confirmPayDetails():
-    print("-------------------------------------")
+    print("\n-------------------------------------")
     print("Billing information and address.")
     for x in paydetails:
         print(x + ':' + ' ' * int(15 - len(x)) + paydetails[x])
-    print("-------------------------------------")
+    print("-------------------------------------\n")
     inp = input('Is this information correct? [Y]es/[N]o: ')
     if inp.upper() == 'NO' or inp.upper() == 'N':
         return False
@@ -372,13 +376,36 @@ def confirmPayDetails():
         return confirmPayDetails()
 
 
+def selectItemNum():
+    global itemNum
+    inp = input('How many items do you want?:  ')
+    if inp.isnumeric():
+        itemNum = int(inp)
+    else:
+        print('Invalid input')
+        sys.exit(1)
+
+
+def getItemDetails():
+    global items, selectedCategory
+    while True:
+        selectedCategory = selectCategory()
+        keywords = selectKeywords()
+
+        selectedSize = selectSize()
+        selectedColour = selectColour()
+
+        listOptions(selectedCategory, ','.join(keywords), selectedSize, selectedColour)
+        answer = input("Are you sure about these settings? [Y]es/[N]o: ").upper()
+        if answer == "Y":
+            break
+  
+    items.append({'selectedCategory': selectedCategory, 'keywords': keywords, 'selectedSize': selectedSize, 'selectedColour': selectedColour})
+    
+
+
 def main():
-    global service
-    global selectedCategory
-    global selectedSize
-    global selectedColour
-    global capabilities
-    global password
+    global service, capabilities, password, items
     wsh = comclt.Dispatch("WScript.Shell")
     chromePath = readPath()
 
@@ -411,13 +438,14 @@ def main():
     if not confirmPayDetails():
         getPDetails()
 
-    selectedCategory = selectCategory()
-    selectKeywords()
+    selectItemNum()
 
-    selectedSize = selectSize()
-    selectedColour = selectColour()
-    listOptions()
+    items = []
+    for x in range(itemNum):
+        getItemDetails()
+
     openChrome()
+    cart()
 
 
 if __name__ == '__main__':
