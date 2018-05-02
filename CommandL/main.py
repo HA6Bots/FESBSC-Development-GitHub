@@ -414,15 +414,11 @@ def selectItemNum():
 def getItemDetails():
     global items, selectedCategory
     while True:
-        #selectedCategory = selectCategory()
-        selectedCategory = 'jackets'
-        #keywords = selectKeywords()
-        keywords = ['World', 'Famous']
+        selectedCategory = selectCategory()
+        keywords = selectKeywords()
 
-        #selectedSize = selectSize()
-        selectedSize = 'D'
-        #selectedColour = selectColour()
-        selectedColour = 'Green'
+        selectedSize = selectSize()
+        selectedColour = selectColour()
 
         listOptions(selectedCategory, ','.join(keywords), selectedSize, selectedColour)
         answer = input("Are you sure about these settings? [Y]es/[N]o: ").upper()
