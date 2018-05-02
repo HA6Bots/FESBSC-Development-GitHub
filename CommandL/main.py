@@ -30,14 +30,13 @@ import encrypt as enc
 
 LOGFILE = True
 
-pDescr = {'Country': '(UK, DE, FR, ...)', 'CardMonth': '(01, 02, ..., 12)', 'Name': '(first and last name)'}
+EUpDescr = {'Country': '(UK, DE, FR, ...)', 'CardMonth': '(01, 02, ..., 12)', 'Name': '(first and last name)', 'CardType': '(or enter "Paypal")'}
+USpDescr = {'Country': '(USA or CANADA)', 'CardMonth': '(01, 02, ..., 12)', 'Name': '(first and last name)', 'Addr3': '(State abbreviation: AL, AK, AS, ...)'}
 
 paydetails = OrderedDict(
-    [('Name', ''), ('Email', ''), ('Phone', ''), ('Addr1', ''), ('Addr2', ''),
-     ('Addr3', ''),
-     ('City', ''), ('Post/zip code', ''), ('Country', ''), ('Cardno', ''),
-     ('CardCVV', ''),
-     ('CardMonth', ''), ('CardYear', ''), ('CardType', '')])
+    [('Name', ''), ('Email', ''), ('Phone', ''), ('Addr1', ''), ('Addr2', ''), ('Addr3', ''),
+     ('City', ''), ('Post/zip code', ''), ('Country', ''), ('CardType', ''), ('Cardno', ''),
+     ('CardCVV', ''), ('CardMonth', ''), ('CardYear', '')])
 
 categoryList = ['jackets', 'shirts', 'tops_sweaters', 'sweatshirts', 'pants', 'hats', 'bags',
                 'accessories', 'shoes', 'skate']
@@ -73,7 +72,6 @@ def writeLog(txt):
 
 
 def selectSize():
-    global sizeC
     sizeC = 0
     sizes = ["Small", "Medium", "Large", "XLarge"]
     print("Select Size (Alternatively simply enter 'D' for the first available size)")
@@ -86,7 +84,7 @@ def selectSize():
         if sizeInput in sizes:
             return sizeInput
         elif sizeInput == "D":
-            sizeC = 1
+            return sizeInput
         else:
             print("Please enter one of the listed sizes exactly")
             print(sizeInput)
@@ -100,17 +98,13 @@ def selectSize():
         if 'US ' in sizeInput and ' / UK ' in sizeInput:
             return sizeInput
         elif sizeInput == "D":
-            sizeC = 1
+            return sizeInput
         else:
             print("Please enter a correctly formated size")
             return selectSize()
 
     else:
         sizeInput = input("Select size: ").title()
-        if sizeInput == "D":
-            sizeC = 1
-        elif sizeInput != "D":
-            sizeC = 2
         return sizeInput
 
 
@@ -138,10 +132,22 @@ def check_exists_by_xpath(xpath, driver):
 
 
 def returnTime():
-    timeS = "Please enter the hour of the drop (e.g. if you're in the UK enter '11' for 11.00am) "
+    timeEU = "Please enter the hour of the drop (e.g. if you're in the UK enter '11' for 11.00am) "
+    timeUS = "Please enter the hour of the drop "
+    if reg == 'EU':
+        timeS = timeEU
+    elif reg == 'US':
+        timeS = timeUS
 
     isTime = input(timeS)
-    dropTime = int(isTime)
+    if len(isTime) < 0:
+        print('Invalid input')
+        sys.exit(1)
+    try:
+        dropTime = int(isTime)
+    except:
+        print('Invalid input')
+        sys.exit(1)
     text = "Drop selected for "
     text += isTime
     text += ":00"
@@ -157,12 +163,12 @@ def returnTime():
 
 
 def sendKeys(value, field, driver):
-    if len(value) <= 1:
+    if len(value) < 1:
         return None
     try:
         driver.execute_script("arguments[0].value = '" + value + "';", field)
     except WebDriverException:
-        pass
+        print(field.get_attribute('Name'))
 
 
 def selectText(value, obj, attr=False):
@@ -230,8 +236,11 @@ def searchItem(item):
     time.sleep(0.5+random())
 
     try:
-        if sizeC != 1:
-            size = Select(driver.find_element_by_id("size"))
+        if item['selectedSize'] != 'D':
+            if reg == 'EU':
+                size = Select(driver.find_element_by_id("size"))
+            elif reg == 'US':
+                size = Select(driver.find_element_by_id("s"))
             op = size.options
             found = False
             for x in op:
@@ -270,7 +279,7 @@ def openChrome():
 
 
 def cart():
-    cart = check_exists_by_xpath("""//*[@id="cart"]/a[2]""", driver)
+    cart = driver.find_elements_by_class_name('checkout')[0]
     cart.click()
 
     name = check_exists_by_xpath("""//*[@id="order_billing_name"]""", driver)
@@ -288,8 +297,15 @@ def cart():
     add2 = check_exists_by_xpath("""//*[@id="oba3"]""", driver)
     sendKeys(paydetails['Addr2'], add2, driver)
 
-    add3 = check_exists_by_xpath("""//*[@id="order_billing_address_3"]""", driver)
-    sendKeys(paydetails['Addr3'], add3, driver)
+    country = Select(driver.find_element_by_name("order[billing_country]"))
+    selectText(paydetails['Country'], country, True)
+
+    if reg == 'EU':
+        add3 = check_exists_by_xpath("""//*[@id="order_billing_address_3"]""", driver)
+        sendKeys(paydetails['Addr3'], add3, driver)
+    elif reg == 'US':
+        state = Select(driver.find_element_by_name("order[billing_state]"))
+        selectText(paydetails['Addr3'], state, True)
 
     city = check_exists_by_xpath("""//*[@id="order_billing_city"]""", driver)
     sendKeys(paydetails['City'], city, driver)
@@ -297,30 +313,34 @@ def cart():
     postcode = check_exists_by_xpath("""//*[@id="order_billing_zip"]""", driver)
     sendKeys(paydetails['Post/zip code'], postcode, driver)
 
-    country = Select(driver.find_element_by_name("order[billing_country]"))
-    selectText(paydetails['Country'], country, True)
+    if reg == 'EU':
+        cardType = Select(driver.find_element_by_id("credit_card_type"))
+        selectText(paydetails['CardType'].lower(), cardType, True)
 
-    if paydetails['CardType'] != 1:
-        cardno = check_exists_by_xpath("""//*[@id="cnb"]""", driver)
+    if paydetails['CardType'].lower() != 'paypal':
+        if reg == 'EU':
+            cardno = check_exists_by_xpath("""//*[@id="cnb"]""", driver)
+        elif reg == 'US':
+            cardno = check_exists_by_xpath("""//*[@id="nnaerb"]""", driver)
         sendKeys(paydetails['Cardno'], cardno, driver)
 
-        cvv = check_exists_by_xpath("""//*[@id="vval"]""", driver)
+        if reg == 'EU':
+            cvv = check_exists_by_xpath("""//*[@id="vval"]""", driver)
+        elif reg == 'US':
+            cvv = check_exists_by_xpath("""//*[@id="orcer"]""", driver)
         sendKeys(paydetails['CardCVV'], cvv, driver)
 
-        cardType = Select(driver.find_element_by_id("credit_card_type"))
-        selectText(paydetails['CardType'], cardType)
-
         expiraryDate1 = Select(driver.find_element_by_name("credit_card[month]"))
-        selectText(paydetails['CardMonth'], expiraryDate1)
+        selectText(paydetails['CardMonth'], expiraryDate1, True)
 
         expiraryDate2 = Select(driver.find_element_by_name("credit_card[year]"))
-        selectText(paydetails['CardYear'], expiraryDate2)
+        selectText(paydetails['CardYear'], expiraryDate2, True)
 
     tickBox = driver.find_element_by_xpath("""//*[@id="cart-cc"]/fieldset/p/label/div/ins""")
     tickBox.click()
 
     complete = check_exists_by_xpath("""//*[@id="pay"]/input""", driver)
-    complete.click()
+    #complete.click()
     print("Complete the captcha and confirm the order manually. Thanks for using me ;)")
     print("If this bot helped you make money/cop a nice item, please consider donating to a charity of your choice")
 
@@ -347,11 +367,16 @@ def selectCategory():
 
 def getPDetails():
     global password
+    pp = False
     for x in paydetails:
-        if x in pDescr:
+        if (reg == 'US' and x == 'CardType') or (pp and (x == 'Cardno' or x == 'CardCVV' or x == 'CardMonth' or x == 'CardYear')):
+            paydetails[x] = 'Not Used'
+        elif x in pDescr:
             paydetails[x] = input('Enter %s %s: ' % (x, pDescr[x]))
         else:
             paydetails[x] = input('Enter %s: ' % (x))
+        if reg == 'EU' and paydetails['CardType'].lower() == 'paypal':
+            pp = True
 
     inp = input('\n\nDo you want to safe your details encrypted for easy future use? [Y]es/[N]o: ')
     if inp.upper() == 'YES' or inp.upper() == 'Y':
@@ -389,11 +414,15 @@ def selectItemNum():
 def getItemDetails():
     global items, selectedCategory
     while True:
-        selectedCategory = selectCategory()
-        keywords = selectKeywords()
+        #selectedCategory = selectCategory()
+        selectedCategory = 'jackets'
+        #keywords = selectKeywords()
+        keywords = ['World', 'Famous']
 
-        selectedSize = selectSize()
-        selectedColour = selectColour()
+        #selectedSize = selectSize()
+        selectedSize = 'D'
+        #selectedColour = selectColour()
+        selectedColour = 'Green'
 
         listOptions(selectedCategory, ','.join(keywords), selectedSize, selectedColour)
         answer = input("Are you sure about these settings? [Y]es/[N]o: ").upper()
@@ -403,9 +432,18 @@ def getItemDetails():
     items.append({'selectedCategory': selectedCategory, 'keywords': keywords, 'selectedSize': selectedSize, 'selectedColour': selectedColour})
     
 
+def getRegion():
+    inp = input('Enter region (EU or US): ')
+    if inp.upper() == 'EU':
+        return 'EU'
+    elif inp.upper() == 'US':
+        return 'US'
+    else:
+        return getRegion()
+
 
 def main():
-    global service, capabilities, password, items
+    global service, capabilities, password, items, reg, pDescr
     wsh = comclt.Dispatch("WScript.Shell")
     chromePath = readPath()
 
@@ -421,12 +459,20 @@ def main():
     print(
         "\nFill out all the details, make sure you get all of them right. If you need help please open 'README.md' or check the reddit post.")
 
+    reg = getRegion()
+
+    if reg == 'EU':
+        pDescr = EUpDescr
+    elif reg == 'US':
+        pDescr = USpDescr
+    
     if not path.isfile(getLoc('config.cnf')):
         enc.paydetails = paydetails
         enc.initConf()
         getPDetails()
     else:
         inp = input('Do you want to use your stored details? [Y]es/[N]o: ')
+        enc.update(paydetails)
         if inp.upper() == 'YES' or inp.upper() == 'Y':
             inp = input('Enter your password: ')
             enc.password = inp.encode('ascii')

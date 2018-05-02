@@ -5,6 +5,7 @@ The official source code for FESBSC. Development is still in progress.
 2. Add the GUI back
 3. Counter new anti-bot counter-measures
 # Features
+- US/CA and EU region supported !!
 - Save payment information locally encrypted with AES
 - Purchase multiple items at once, no more than one of each item allowed.
 - Strict item selection. This will only buy an item which has a **100%** match to your specified information. This will try to guaranty NO wrong purchases due to timing or similar named items

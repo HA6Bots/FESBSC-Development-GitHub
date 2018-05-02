@@ -58,3 +58,21 @@ def decr(value):
     except UnicodeDecodeError:
         print('Password is probably incorrect')
         exit(1)
+
+def update(pd):
+    old = []
+    config = ConfigParser()
+    config.read('config.cnf')
+    if config.items(config.sections()[0])[-1][0] == 'cardtype':
+        newconf = ConfigParser()
+        newconf.add_section('SupremeBotConfig')
+        old = config.items(config.sections()[0])
+        for x in pd:
+            for y in old:
+                if y[0] in x.lower():
+                    pd[x] = y[1]
+                    newconf.set(config.sections()[0], x, y[1])
+    
+        cfgfile = open('config.cnf', 'w')
+        newconf.write(cfgfile)
+        cfgfile.close()
