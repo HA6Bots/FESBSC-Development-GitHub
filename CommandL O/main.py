@@ -1,5 +1,4 @@
 from configparser import ConfigParser
-from collections import OrderedDict
 from os import path
 from collections import OrderedDict
 import time
@@ -27,16 +26,19 @@ from datetime import datetime
 import pytz
 
 import encrypt as enc
+import window.window as window
 
 LOGFILE = True
+manualSize = True
 
 EUpDescr = {'Country': '(UK, DE, FR, ...)', 'CardMonth': '(01, 02, ..., 12)', 'Name': '(first and last name)', 'CardType': '(or enter "Paypal")'}
 USpDescr = {'Country': '(USA or CANADA)', 'CardMonth': '(01, 02, ..., 12)', 'Name': '(first and last name)', 'Addr3': '(State abbreviation: AL, AK, AS, ...)'}
+ASIApDescr = {'Country': '(JAPAN)', 'CardMonth': '(01, 02, ..., 12)', 'Name': '(first and last name)', 'Addr3': '(State abbreviation: enter province in Japanese)'}
 
 paydetails = OrderedDict(
     [('Name', ''), ('Email', ''), ('Phone', ''), ('Addr1', ''), ('Addr2', ''), ('Addr3', ''),
      ('City', ''), ('Post/zip code', ''), ('Country', ''), ('CardType', ''), ('Cardno', ''),
-     ('CardCVV', ''), ('CardMonth', ''), ('CardYear', '')])
+     ('CardCVV', ''), ('CardMonth', ''), ('CardYear', ''), ('Region', '')])
 
 categoryList = ['jackets', 'shirts', 'tops_sweaters', 'sweatshirts', 'pants', 'hats', 'bags',
                 'accessories', 'shoes', 'skate']
@@ -110,6 +112,8 @@ def selectSize():
 
 def selectColour():
     colour = input("Select a colour/model (please use a capital letter e.g. Black/Red/Blue) ").title()
+    if len(colour) == 0:
+        colour = 'Not defined'
     return colour
 
 
@@ -168,7 +172,7 @@ def sendKeys(value, field, driver):
     try:
         driver.execute_script("arguments[0].value = '" + value + "';", field)
     except WebDriverException:
-        print(field.get_attribute('Name'))
+        return None
 
 
 def selectText(value, obj, attr=False):
@@ -218,9 +222,9 @@ def searchItem(item):
         for i in range(0, len(checkedListings), 1):
             if checkedListings[i] > largestMatch:
                 largestMatch = checkedListings[i]
-        if item['selectedColour'] != '' and largestMatch == len(item['keywords']) + 1:
+        if item['selectedColour'] != 'Not defined' and largestMatch == len(item['keywords']) + 1:
             break
-        elif item['selectedColour'] == '' and largestMatch == len(item['keywords']):
+        elif item['selectedColour'] == 'Not defined' and largestMatch == len(item['keywords']):
             break
         elif not strict:
             break
@@ -249,6 +253,9 @@ def searchItem(item):
                     break
             if found:
                 selectText(item['selectedSize'], size)
+            elif manualSize:
+                print('\nSELECTED SIZE NOT FOUND/AVAILABLE MANUAL SELECT\n')
+                time.sleep(4)
             else:
                 print("Sorry the item size is sold out!")
                 return None
@@ -340,7 +347,7 @@ def cart():
     tickBox.click()
 
     complete = check_exists_by_xpath("""//*[@id="pay"]/input""", driver)
-    #complete.click()
+    complete.click()
     print("Complete the captcha and confirm the order manually. Thanks for using me ;)")
     print("If this bot helped you make money/cop a nice item, please consider donating to a charity of your choice")
 
@@ -378,11 +385,14 @@ def getPDetails():
         if reg == 'EU' and paydetails['CardType'].lower() == 'paypal':
             pp = True
 
-    inp = input('\n\nDo you want to safe your details encrypted for easy future use? [Y]es/[N]o: ')
+    inp = input('\n\nDo you want to save your details encrypted for easy future use? [Y]es/[N]o: ')
     if inp.upper() == 'YES' or inp.upper() == 'Y':
         inp = input('Enter a password: ')
         enc.password = inp.encode('ascii')
+        print(len(paydetails))
         for x in paydetails:
+            print(x)
+            print(paydetails[x])
             enc.writeToConf(x, paydetails[x])
 
 
@@ -429,14 +439,22 @@ def getItemDetails():
     
 
 def getRegion():
-    inp = input('Enter region (EU or US): ')
+    inp = input('Enter region (EU/US/ASIA): ')
     if inp.upper() == 'EU':
         return 'EU'
     elif inp.upper() == 'US':
         return 'US'
+    elif inp.upper() == 'ASIA':
+        return 'ASIA'
     else:
         return getRegion()
 
+
+def isPasswordExists():
+    if not path.isfile(getLoc('config.cnf')):
+        return False
+    else:
+        return True
 
 def main():
     global service, capabilities, password, items, reg, pDescr
@@ -461,8 +479,10 @@ def main():
         pDescr = EUpDescr
     elif reg == 'US':
         pDescr = USpDescr
+    elif reg == 'ASIA':
+        pDescr = ASIApDescr
     
-    if not path.isfile(getLoc('config.cnf')):
+    if not isPasswordExists():
         enc.paydetails = paydetails
         enc.initConf()
         getPDetails()
@@ -491,4 +511,6 @@ def main():
 
 
 if __name__ == '__main__':
+    window.startWindow(isPasswordExists())
     main()
+

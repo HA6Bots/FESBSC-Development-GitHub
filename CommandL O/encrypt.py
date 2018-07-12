@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 from hashlib import sha256
 from base64 import b64encode, b64decode
+from time import sleep
 import aes
 
 def writeToConf(key, value):
@@ -20,7 +21,7 @@ def readConf(key):
         return decr(config.get(config.sections()[0], key))
     except TypeError:
         print('Password is probably incorrect')
-        exit(1)
+        exit(0)
 
 
 def initConf():
